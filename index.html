@@ -1325,6 +1325,8 @@ function addIncome() {
   toast('✅ บันทึกรายรับแล้ว');
   goPage('home', document.querySelectorAll('.nav-btn')[2]);
 }
+
+function clearExpForm() {
   document.getElementById('exp-amount').value = '';
   document.getElementById('exp-note').value = '';
   document.getElementById('exp-bill').value = '';
@@ -1479,8 +1481,10 @@ function startChangePin() {
   document.getElementById('pinChangeBtn').style.display = 'none';
 }
 
-/* PIN init is called inside the main load listener above */
+// PIN init is called inside the main load listener above
+</script>
 
+<style>
 /* ===== MULTI-PAYMENT ===== */
 .add-pay-btn {
   display: block;
@@ -1546,6 +1550,6 @@ function startChangePin() {
   border-bottom: 1px solid var(--border);
 }
 .pay-sum-row:last-child { border-bottom: none; }
-</script>
+</style>
 </body>
 </html>
