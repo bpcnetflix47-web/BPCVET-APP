@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PawAccounts">
+<meta name="theme-color" content="#2A9D8F">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>บัญชีคลีนิคสัตวแพทย์</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+:root {
+  --teal:    #2A9D8F;
+  --teal-lt: #E8F5F3;
+  --teal-dk: #1B7A6E;
+  --amber:   #F4A261;
+  --amb-lt:  #FFF4EA;
+  --red:     #E76F51;
+  --red-lt:  #FDECEA;
+  --navy:    #264653;
+  --slate:   #546E7A;
+  --mist:    #F0F4F6;
+  --border:  #DDE6EA;
+  --white:   #FFFFFF;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Sarabun', sans-serif;
+  background: var(--mist);
+  color: var(--navy);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== APP SHELL ===== */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--navy);
+  padding: calc(var(--safe-top) + 12px) 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.topbar-logo { font-size: 20px; }
+.topbar-title { flex: 1; }
+.topbar-title h1 { color: white; font-size: 16px; font-weight: 700; line-height: 1.2; }
+.topbar-title p { color: rgba(255,255,255,0.5); font-size: 11px; }
+.topbar-action {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: white;
+  font-size: 13px;
+  font-family: 'Sarabun', sans-serif;
+  cursor: pointer;
+}
+
+/* PAGES */
+.pages {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: none;
+  padding-bottom: 80px;
+}
+.page.active { display: block; }
+
+/* BOTTOM NAV */
+.bottomnav {
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bot);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--slate);
+  font-family: 'Sarabun', sans-serif;
+  transition: color 0.15s;
+}
+.nav-btn .nav-icon { font-size: 22px; line-height: 1; }
+.nav-btn .nav-label { font-size: 10px; font-weight: 600; }
+.nav-btn.active { color: var(--teal); }
+.nav-btn .badge {
+  position: absolute;
+  top: 6px; right: calc(50% - 18px);
+  background: var(--red);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+}
+.nav-btn { position: relative; }
+
+/* ===== SHARED COMPONENTS ===== */
+.section-head {
+  padding: 16px 16px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card {
+  background: white;
+  margin: 0 12px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-row:last-child { border-bottom: none; }
+
+.field-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+  display: block;
+  margin-bottom: 2px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 15px;
+  color: var(--navy);
+  background: white;
+  appearance: none;
+  -webkit-appearance: none;
+}
+input:focus, select:focus { outline: none; border-color: var(--teal); }
+
+.input-wrap { flex: 1; }
+
+/* AMOUNT INPUT */
+.amount-input-wrap {
+  position: relative;
+  margin: 12px 16px;
+}
+.amount-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--slate);
+  pointer-events: none;
+}
+.amount-input {
+  font-size: 28px !important;
+  font-weight: 700;
+  padding: 14px 14px 14px 36px !important;
+  border-radius: 12px !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  color: var(--navy) !important;
+}
+
+/* VAT INFO BOX */
+.vat-box {
+  margin: 0 12px 10px;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.vat-box.has-vat { background: var(--teal-lt); color: var(--teal-dk); border: 1px solid #b2ddd8; }
+.vat-box.no-vat { background: var(--mist); color: var(--slate); border: 1px solid var(--border); }
+
+.vat-calc {
+  margin: 0 12px 10px;
+  background: white;
+  border-radius: 12px;
+  border: 1.5px solid var(--teal);
+  overflow: hidden;
+}
+.vat-calc-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.vat-calc-row:last-child { border-bottom: none; font-weight: 700; background: var(--teal-lt); }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+/* BIG SUBMIT BUTTON */
+.submit-btn {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 12px;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  color: white;
+  background: var(--teal);
+  transition: opacity 0.15s;
+}
+.submit-btn:active { opacity: 0.8; }
+.submit-btn.expense { background: var(--amber); }
+
+/* ===== HOME PAGE ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+}
+.kpi {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+.kpi.full { grid-column: span 2; }
+.kpi-label { font-size: 11px; color: var(--slate); font-weight: 600; margin-bottom: 6px; }
+.kpi-value { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
+.kpi-value.green { color: var(--teal); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.red { color: var(--red); }
+.kpi-sub { font-size: 11px; color: var(--slate); margin-top: 4px; }
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.recent-item:last-child { border-bottom: none; }
+.ri-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.ri-body { flex: 1; min-width: 0; }
+.ri-body p { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ri-body span { font-size: 11px; color: var(--slate); }
+.ri-amount { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; text-align: right; }
+
+/* ===== LIST PAGE ===== */
+.filter-scroll {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--slate);
+  cursor: pointer;
+}
+.filter-chip.active { background: var(--teal); color: white; border-color: var(--teal); }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.list-item:last-child { border-bottom: none; }
+.li-icon {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+.li-body { flex: 1; min-width: 0; }
+.li-body p { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li-body span { font-size: 11px; color: var(--slate); }
+.li-right { text-align: right; flex-shrink: 0; }
+.li-amount { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 700; }
+.li-vat { font-size: 10px; margin-top: 2px; }
+
+.pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.pill-teal { background: var(--teal-lt); color: var(--teal-dk); }
+.pill-gray { background: var(--mist); color: var(--slate); }
+
+/* ===== REPORT PAGE ===== */
+.report-month-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+.month-nav {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.month-label {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.report-section {
+  margin: 0 12px 12px;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.report-section-head {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mist);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.report-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.report-row:last-child { border-bottom: none; }
+.report-row.total { font-weight: 700; background: var(--teal-lt); }
+.report-row.vat-alert { background: #fff8f5; }
+.report-row small { font-size: 10px; color: var(--slate); display: block; }
+
+/* VAT ALERT BANNER */
+.vat-banner {
+  margin: 0 12px 12px;
+  background: var(--red-lt);
+  border: 1.5px solid #f5b8ac;
+  border-radius: 14px;
+  padding: 16px;
+}
+.vat-banner h3 { font-size: 14px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+.vat-banner p { font-size: 13px; color: #7a3a2a; line-height: 1.5; }
+.vat-amount { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; color: var(--red); margin: 8px 0 4px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 20px; color: var(--slate); }
+.empty .ei { font-size: 40px; margin-bottom: 10px; }
+.empty p { font-size: 14px; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: calc(70px + var(--safe-bot) + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--navy);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.25s;
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* MODAL (delete confirm) */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  padding-bottom: calc(20px + var(--safe-bot));
+  width: 100%;
+  max-width: 480px;
+}
+.modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.modal p { font-size: 14px; color: var(--slate); margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-btns button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
+.modal-cancel { background: var(--mist); color: var(--navy); }
+.modal-confirm { background: var(--red); color: white; }
+
+/* SWIPE TO DELETE hint */
+.delete-hint {
+  font-size: 11px;
+  color: var(--slate);
+  text-align: center;
+  padding: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">🐾</div>
+    <div class="topbar-title">
+      <h1>PawAccounts</h1>
+      <p id="todayDate"></p>
+    </div>
+    <button class="topbar-action" onclick="exportCSV()">📥 Export</button>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">รายรับเดือนนี้</div>
+          <div class="kpi-value green" id="h-income">฿0</div>
+          <div class="kpi-sub" id="h-income-c">0 รายการ</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">รายจ่ายเดือนนี้</div>
+          <div class="kpi-value amber" id="h-expense">฿0</div>
+          <div class="kpi-sub" id="h-expense-c">0 รายการ</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">⚠️ VAT ต้องนำส่ง</div>
+          <div class="kpi-value red" id="h-vat">฿0</div>
+          <div class="kpi-sub">ยื่น ภ.พ.30 ทุกเดือน</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">กำไรเบื้องต้น</div>
+          <div class="kpi-value green" id="h-profit">฿0</div>
+          <div class="kpi-sub">รายรับ – รายจ่าย</div>
+        </div>
+      </div>
+
+      <div class="section-head">รายการล่าสุด</div>
+      <div class="card" id="recentList">
+        <div class="empty"><div class="ei">📋</div><p>ยังไม่มีรายการ<br>กด + เพื่อเริ่มบันทึก</p></div>
+      </div>
+    </div>
+
+    <!-- ADD INCOME -->
+    <div class="page" id="page-income">
+      <div class="section-head">ประเภทรายรับ</div>
+      <div class="card">
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>เลือกประเภท</label>
+            <select id="inc-type" onchange="onIncTypeChange()">
+              <option value="">-- เลือกประเภท --</option>
+              <option value="treatment">🏥 ค่าตรวจรักษา / ผ่าตัด</option>
+              <option value="medicine">💊 ค่ายาสัตว์ (Simparica, Bravecto ฯลฯ)</option>
+              <option value="vaccine">💉 วัคซีนสัตว์</option>
+              <option value="food">🍖 อาหาร / อาหารเสริม / นม</option>
+              <option value="equipment">🛁 ค่าอุปกรณ์สัตว์</option>
+              <option value="grooming">✂️ อาบน้ำ / ตัดขน</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="vat-box" id="inc-vat-box" style="display:none"></div>
+
+      <div class="section-head">จำนวนเงิน (รวม VAT แล้ว)</div>
+      <div class="amount-input-wrap">
+        <span class="amount-prefix">฿</span>
+        <input class="amount-input" type="number" id="inc-amount" placeholder="0.00" inputmode="decimal" oninput="calcIncVat()">
+      </div>
+
+      <div class="vat-calc" id="inc-vat-calc" style="display:none">
+        <div class="vat-calc-row"><span>ราคาก่อน VAT</span><span class="mono" id="vc-base">฿0.00</span></div>
+        <div class="vat-calc-row" style="color:var(--red)"><span>VAT 7%</span><span class="mono" id="vc-vat">฿0.00</span></div>
+        <div class="vat-calc-row"><span>รวมที่ลูกค้าจ่าย</span><span class="mono" id="vc-total">฿0.00</span></div>
+      </div>
+
+      <div class="section-head">รายละเอียด</div>
+      <div class="card">
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>ชื่อลูกค้า / ชื่อสัตว์</label>
+            <input type="text" id="inc-note" placeholder="เช่น คุณสมชาย / บัตเตอร์">
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>วันที่</label>
+            <input type="date" id="inc-date">
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>ช่องทางชำระ</label>
+            <select id="inc-pay">
+              <option value="cash">💵 เงินสด</option>
+              <option value="transfer">🏦 โอนเงิน</option>
+              <option value="qr">📱 QR Code</option>
+              <option value="card">💳 บัตรเครดิต</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>เลขที่บิล (ถ้ามี)</label>
+            <input type="text" id="inc-bill" placeholder="เช่น INV-001">
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="addIncome()">✅ บันทึกรายรับ</button>
+    </div>
+
+    <!-- ADD EXPENSE -->
+    <div class="page" id="page-expense">
+      <div class="section-head">หมวดรายจ่าย</div>
+      <div class="card">
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>เลือกหมวด</label>
+            <select id="exp-type">
+              <option value="drug_cost">💊 ต้นทุนยาและวัคซีน</option>
+              <option value="food_cost">🍖 ต้นทุนอาหารสัตว์</option>
+              <option value="equip_cost">🔧 ต้นทุนอุปกรณ์</option>
+              <option value="salary">👥 เงินเดือน / ค่าจ้าง</option>
+              <option value="rent">🏠 ค่าเช่าสถานที่</option>
+              <option value="utility">💡 ค่าสาธารณูปโภค</option>
+              <option value="repair">🔩 ซ่อมบำรุง</option>
+              <option value="other">📦 อื่น ๆ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head">จำนวนเงิน</div>
+      <div class="amount-input-wrap">
+        <span class="amount-prefix">฿</span>
+        <input class="amount-input" type="number" id="exp-amount" placeholder="0.00" inputmode="decimal">
+      </div>
+
+      <div class="section-head">รายละเอียด</div>
+      <div class="card">
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>รายละเอียด / ซัพพลายเออร์</label>
+            <input type="text" id="exp-note" placeholder="เช่น Thai Pharma / ค่าไฟเดือน มิ.ย.">
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>วันที่</label>
+            <input type="date" id="exp-date">
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>ช่องทางจ่าย</label>
+            <select id="exp-pay">
+              <option value="cash">💵 เงินสด</option>
+              <option value="transfer">🏦 โอนเงิน</option>
+              <option value="card">💳 บัตรเครดิต</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="input-wrap">
+            <label>เลขที่ใบแจ้งหนี้</label>
+            <input type="text" id="exp-bill" placeholder="เช่น PO-001">
+          </div>
+        </div>
+      </div>
+
+      <button class="submit-btn expense" onclick="addExpense()">✅ บันทึกรายจ่าย</button>
+    </div>
+
+    <!-- LIST -->
+    <div class="page" id="page-list">
+      <div class="filter-scroll" id="filterChips">
+        <div class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">ทั้งหมด</div>
+        <div class="filter-chip" data-filter="income" onclick="setFilter('income',this)">รายรับ</div>
+        <div class="filter-chip" data-filter="expense" onclick="setFilter('expense',this)">รายจ่าย</div>
+        <div class="filter-chip" data-filter="vat" onclick="setFilter('vat',this)">มี VAT</div>
+      </div>
+      <div style="padding:4px 12px 8px">
+        <input type="month" id="list-month" onchange="renderList()" style="font-size:14px;border-radius:10px">
+      </div>
+      <div class="card" id="listContainer">
+        <div class="empty"><div class="ei">📋</div><p>ยังไม่มีรายการ</p></div>
+      </div>
+      <div class="delete-hint">แตะค้างรายการเพื่อลบ</div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="page" id="page-report">
+      <div class="report-month-picker">
+        <button class="month-nav" onclick="changeReportMonth(-1)">‹</button>
+        <div class="month-label" id="report-month-label">—</div>
+        <button class="month-nav" onclick="changeReportMonth(1)">›</button>
+      </div>
+
+      <div id="report-content">
+        <div class="empty"><div class="ei">📊</div><p>ไม่มีข้อมูล</p></div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottomnav">
+    <button class="nav-btn active" onclick="goPage('home',this)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">หน้าหลัก</div>
+    </button>
+    <button class="nav-btn" onclick="goPage('income',this)">
+      <div class="nav-icon">📥</div>
+      <div class="nav-label">รายรับ</div>
+    </button>
+    <button class="nav-btn" onclick="goPage('expense',this)">
+      <div class="nav-icon">📤</div>
+      <div class="nav-label">รายจ่าย</div>
+    </button>
+    <button class="nav-btn" onclick="goPage('list',this)">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">รายการ</div>
+    </button>
+    <button class="nav-btn" onclick="goPage('report',this)">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">รายงาน</div>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>ลบรายการนี้?</h3>
+    <p id="deleteModalDesc">รายการจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="modal-confirm" onclick="confirmDelete()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const VAT_TYPES = { treatment:true, medicine:false, vaccine:false, food:false, equipment:true, grooming:true };
+const TYPE_LABELS = { treatment:'ค่าตรวจรักษา/ผ่าตัด', medicine:'ค่ายาสัตว์', vaccine:'วัคซีน', food:'อาหาร/อาหารเสริม', equipment:'ค่าอุปกรณ์', grooming:'อาบน้ำ/ตัดขน' };
+const TYPE_ICONS  = { treatment:'🏥', medicine:'💊', vaccine:'💉', food:'🍖', equipment:'🛁', grooming:'✂️' };
+const TYPE_COLORS = { treatment:'#E8F5F3', medicine:'#FEF3EB', vaccine:'#EDE7F6', food:'#FFF3CD', equipment:'#E3F2FD', grooming:'#FCE4EC' };
+const TYPE_INFO   = { treatment:'✅ มี VAT 7% — ต้องออกใบกำกับภาษีหลังจดทะเบียน VAT', medicine:'❌ ไม่มี VAT — ยาสัตว์ได้รับยกเว้น', vaccine:'❌ ไม่มี VAT — วัคซีนสัตว์ได้รับยกเว้น', food:'❌ ไม่มี VAT — อาหาร อาหารเสริม นมสัตว์ ได้รับยกเว้น', equipment:'✅ มี VAT 7% — ต้องออกใบกำกับภาษี', grooming:'✅ มี VAT 7% — บริการต้องเสีย VAT' };
+const EXP_LABELS  = { drug_cost:'ต้นทุนยา/วัคซีน', food_cost:'ต้นทุนอาหาร', equip_cost:'ต้นทุนอุปกรณ์', salary:'เงินเดือน', rent:'ค่าเช่า', utility:'สาธารณูปโภค', repair:'ซ่อมบำรุง', other:'อื่นๆ' };
+const EXP_ICONS   = { drug_cost:'💊', food_cost:'🍖', equip_cost:'🔧', salary:'👥', rent:'🏠', utility:'💡', repair:'🔩', other:'📦' };
+const TH_MONTHS   = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+// ===== STATE =====
+const STORAGE_KEY = 'vet_entries_v2';
+let entries = [];
+let currentFilter = 'all';
+let reportYM = '';
+let deleteId = null;
+
+function load() {
+  try { entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { entries = []; }
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch(e) { toast('⚠️ บันทึกไม่ได้'); }
+}
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  load();
+  const today = new Date().toISOString().split('T')[0];
+  const ym = today.slice(0,7);
+  document.getElementById('inc-date').value = today;
+  document.getElementById('exp-date').value = today;
+  document.getElementById('list-month').value = ym;
+  document.getElementById('todayDate').textContent = formatThaiDate(today);
+  reportYM = ym;
+  updateReportLabel();
+  refreshHome();
+});
+
+// ===== NAVIGATION =====
+function goPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'list') renderList();
+  if (name === 'report') renderReport();
+}
+
+// ===== VAT LOGIC =====
+function onIncTypeChange() {
+  const type = document.getElementById('inc-type').value;
+  const box = document.getElementById('inc-vat-box');
+  if (!type) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.className = 'vat-box ' + (VAT_TYPES[type] ? 'has-vat' : 'no-vat');
+  box.textContent = TYPE_INFO[type];
+  calcIncVat();
+}
+
+function calcIncVat() {
+  const type = document.getElementById('inc-type').value;
+  const amount = parseFloat(document.getElementById('inc-amount').value) || 0;
+  const calc = document.getElementById('inc-vat-calc');
+  if (VAT_TYPES[type] && amount > 0) {
+    calc.style.display = 'block';
+    const base = amount / 1.07;
+    const vat = amount - base;
+    document.getElementById('vc-base').textContent = '฿' + fmt(base);
+    document.getElementById('vc-vat').textContent  = '฿' + fmt(vat);
+    document.getElementById('vc-total').textContent = '฿' + fmt(amount);
+  } else {
+    calc.style.display = 'none';
+  }
+}
+
+// ===== ADD INCOME =====
+function addIncome() {
+  const type = document.getElementById('inc-type').value;
+  const amount = parseFloat(document.getElementById('inc-amount').value);
+  const note = document.getElementById('inc-note').value.trim();
+  const date = document.getElementById('inc-date').value;
+  const pay  = document.getElementById('inc-pay').value;
+  const bill = document.getElementById('inc-bill').value.trim();
+  if (!type) return toast('⚠️ เลือกประเภทรายรับ');
+  if (!amount || amount <= 0) return toast('⚠️ ใส่จำนวนเงิน');
+  const hasVat = VAT_TYPES[type];
+  const vatAmount  = hasVat ? (amount - amount/1.07) : 0;
+  const baseAmount = hasVat ? (amount/1.07) : amount;
+  entries.push({ id:Date.now(), kind:'income', date, type, note, amount, baseAmount, vatAmount, hasVat, pay, bill });
+  save(); refreshHome(); clearIncForm();
+  toast('✅ บันทึกรายรับแล้ว');
+  goPage('home', document.querySelector('.nav-btn'));
+}
+
+// ===== ADD EXPENSE =====
+function addExpense() {
+  const type   = document.getElementById('exp-type').value;
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  const note   = document.getElementById('exp-note').value.trim();
+  const date   = document.getElementById('exp-date').value;
+  const pay    = document.getElementById('exp-pay').value;
+  const bill   = document.getElementById('exp-bill').value.trim();
+  if (!amount || amount <= 0) return toast('⚠️ ใส่จำนวนเงิน');
+  entries.push({ id:Date.now(), kind:'expense', date, type, note, amount, pay, bill });
+  save(); refreshHome(); clearExpForm();
+  toast('✅ บันทึกรายจ่ายแล้ว');
+  goPage('home', document.querySelector('.nav-btn'));
+}
+
+// ===== HOME =====
+function refreshHome() {
+  const ym = new Date().toISOString().slice(0,7);
+  const month = entries.filter(e => e.date.startsWith(ym));
+  const inc = month.filter(e => e.kind==='income');
+  const exp = month.filter(e => e.kind==='expense');
+  const totalInc = inc.reduce((s,e)=>s+e.amount,0);
+  const totalExp = exp.reduce((s,e)=>s+e.amount,0);
+  const totalVat = inc.reduce((s,e)=>s+(e.vatAmount||0),0);
+  document.getElementById('h-income').textContent = '฿'+fmt(totalInc);
+  document.getElementById('h-expense').textContent = '฿'+fmt(totalExp);
+  document.getElementById('h-vat').textContent = '฿'+fmt(totalVat);
+  document.getElementById('h-profit').textContent = '฿'+fmt(totalInc-totalExp);
+  document.getElementById('h-income-c').textContent = inc.length+' รายการ';
+  document.getElementById('h-expense-c').textContent = exp.length+' รายการ';
+
+  // Recent 8
+  const recent = [...entries].sort((a,b)=>b.id-a.id).slice(0,8);
+  const el = document.getElementById('recentList');
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📋</div><p>ยังไม่มีรายการ<br>กด 📥 หรือ 📤 เพื่อบันทึก</p></div>';
+    return;
+  }
+  el.innerHTML = recent.map(e => {
+    const isInc = e.kind==='income';
+    const icon = isInc ? (TYPE_ICONS[e.type]||'💰') : (EXP_ICONS[e.type]||'📦');
+    const label = isInc ? (TYPE_LABELS[e.type]||e.type) : (EXP_LABELS[e.type]||e.type);
+    const color = isInc ? (TYPE_COLORS[e.type]||'#E8F5F3') : '#FFF4EA';
+    const amtColor = isInc ? 'var(--teal)' : 'var(--red)';
+    const sign = isInc ? '+' : '-';
+    return `<div class="recent-item">
+      <div class="ri-icon" style="background:${color}">${icon}</div>
+      <div class="ri-body">
+        <p>${e.note || label}</p>
+        <span>${label} · ${formatThaiDate(e.date)}</span>
+      </div>
+      <div class="ri-amount" style="color:${amtColor}">${sign}฿${fmt(e.amount)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== LIST =====
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const ym = document.getElementById('list-month').value;
+  let data = entries.filter(e => e.date.startsWith(ym));
+  if (currentFilter === 'income') data = data.filter(e => e.kind==='income');
+  else if (currentFilter === 'expense') data = data.filter(e => e.kind==='expense');
+  else if (currentFilter === 'vat') data = data.filter(e => e.kind==='income' && e.hasVat);
+  data.sort((a,b) => b.id - a.id);
+
+  const el = document.getElementById('listContainer');
+  if (!data.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📋</div><p>ไม่มีรายการในเดือนนี้</p></div>';
+    return;
+  }
+  el.innerHTML = data.map(e => {
+    const isInc = e.kind==='income';
+    const icon = isInc ? (TYPE_ICONS[e.type]||'💰') : (EXP_ICONS[e.type]||'📦');
+    const label = isInc ? (TYPE_LABELS[e.type]||e.type) : (EXP_LABELS[e.type]||e.type);
+    const color = isInc ? (TYPE_COLORS[e.type]||'#E8F5F3') : '#FFF4EA';
+    const amtColor = isInc ? 'var(--teal)' : 'var(--red)';
+    const vatLine = (isInc && e.hasVat) ? `<div class="li-vat" style="color:var(--red)">VAT: ฿${fmt(e.vatAmount)}</div>` : (isInc ? `<div class="li-vat" style="color:var(--slate)">ไม่มี VAT</div>` : '');
+    const sign = isInc ? '+' : '-';
+    return `<div class="list-item" oncontextmenu="showDelete(${e.id},'${(e.note||label).replace(/'/g,"\\'")}');return false" ontouchstart="touchStart(${e.id},'${(e.note||label).replace(/'/g,"\\'")}')">
+      <div class="li-icon" style="background:${color}">${icon}</div>
+      <div class="li-body">
+        <p>${e.note || label}</p>
+        <span>${label} · ${formatThaiDate(e.date)}</span>
+      </div>
+      <div class="li-right">
+        <div class="li-amount" style="color:${amtColor}">${sign}฿${fmt(e.amount)}</div>
+        ${vatLine}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== LONG PRESS DELETE =====
+let pressTimer = null;
+function touchStart(id, label) {
+  pressTimer = setTimeout(() => showDelete(id, label), 600);
+}
+document.addEventListener('touchend', () => clearTimeout(pressTimer));
+document.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+function showDelete(id, label) {
+  deleteId = id;
+  document.getElementById('deleteModalDesc').textContent = `"${label}" จะถูกลบถาวร`;
+  document.getElementById('deleteModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('deleteModal').classList.remove('show');
+  deleteId = null;
+}
+function confirmDelete() {
+  if (!deleteId) return;
+  entries = entries.filter(e => e.id !== deleteId);
+  save(); refreshHome(); renderList();
+  closeModal();
+  toast('🗑️ ลบแล้ว');
+}
+
+// ===== REPORT =====
+function updateReportLabel() {
+  const [y, m] = reportYM.split('-');
+  document.getElementById('report-month-label').textContent = TH_MONTHS[parseInt(m)] + ' ' + (parseInt(y)+543);
+}
+function changeReportMonth(delta) {
+  const d = new Date(reportYM + '-01');
+  d.setMonth(d.getMonth() + delta);
+  reportYM = d.toISOString().slice(0,7);
+  updateReportLabel();
+  renderReport();
+}
+
+function renderReport() {
+  const inc = entries.filter(e => e.date.startsWith(reportYM) && e.kind==='income');
+  const exp = entries.filter(e => e.date.startsWith(reportYM) && e.kind==='expense');
+
+  const byType = {};
+  let totalInc=0, totalVat=0;
+  inc.forEach(e => {
+    if (!byType[e.type]) byType[e.type] = {amount:0,vat:0,count:0};
+    byType[e.type].amount += e.amount;
+    byType[e.type].vat += e.vatAmount||0;
+    byType[e.type].count++;
+    totalInc += e.amount; totalVat += e.vatAmount||0;
+  });
+
+  const byExp = {};
+  let totalExp = 0;
+  exp.forEach(e => {
+    if (!byExp[e.type]) byExp[e.type] = {amount:0,count:0};
+    byExp[e.type].amount += e.amount;
+    byExp[e.type].count++;
+    totalExp += e.amount;
+  });
+
+  const el = document.getElementById('report-content');
+
+  if (!inc.length && !exp.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📊</div><p>ยังไม่มีข้อมูลเดือนนี้</p></div>';
+    return;
+  }
+
+  let html = '';
+
+  // VAT Banner
+  if (totalVat > 0) {
+    html += `<div class="vat-banner">
+      <h3>⚠️ VAT ที่ต้องยื่น ภ.พ.30</h3>
+      <div class="vat-amount">฿${fmt(totalVat)}</div>
+      <p>ยื่นภายในวันที่ 15 ของเดือนถัดไป<br>ส่งข้อมูลนี้ให้นักบัญชีดำเนินการ</p>
+    </div>`;
+  }
+
+  // Income report
+  html += `<div class="report-section">
+    <div class="report-section-head"><span>📥 รายรับแยกตามประเภท</span><span class="mono" style="color:var(--teal)">฿${fmt(totalInc)}</span></div>`;
+
+  ['treatment','grooming','equipment','medicine','vaccine','food'].forEach(t => {
+    if (!byType[t]) return;
+    const d = byType[t];
+    const hasVat = VAT_TYPES[t];
+    html += `<div class="report-row">
+      <div><span>${TYPE_ICONS[t]} ${TYPE_LABELS[t]}</span><small>${d.count} รายการ</small></div>
+      <div style="text-align:right">
+        <div class="mono">฿${fmt(d.amount)}</div>
+        <div style="font-size:10px;color:${hasVat?'var(--red)':'var(--slate)'}">${hasVat?'VAT ฿'+fmt(d.vat):'ไม่มี VAT'}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="report-row total"><span>รวมรายรับ</span><span class="mono" style="color:var(--teal)">฿${fmt(totalInc)}</span></div>
+  </div>`;
+
+  // Expense report
+  html += `<div class="report-section">
+    <div class="report-section-head"><span>📤 รายจ่ายแยกหมวด</span><span class="mono" style="color:var(--amber)">฿${fmt(totalExp)}</span></div>`;
+
+  Object.entries(byExp).forEach(([t,d]) => {
+    html += `<div class="report-row">
+      <div><span>${EXP_ICONS[t]||'📦'} ${EXP_LABELS[t]||t}</span><small>${d.count} รายการ</small></div>
+      <span class="mono" style="color:var(--amber)">฿${fmt(d.amount)}</span>
+    </div>`;
+  });
+
+  html += `<div class="report-row total"><span>รวมรายจ่าย</span><span class="mono" style="color:var(--amber)">฿${fmt(totalExp)}</span></div>
+  </div>`;
+
+  // Summary
+  const profit = totalInc - totalExp;
+  html += `<div class="report-section">
+    <div class="report-section-head">📊 สรุปผล</div>
+    <div class="report-row"><span>รายรับรวม</span><span class="mono" style="color:var(--teal)">฿${fmt(totalInc)}</span></div>
+    <div class="report-row"><span>รายจ่ายรวม</span><span class="mono" style="color:var(--amber)">฿${fmt(totalExp)}</span></div>
+    <div class="report-row total"><span>กำไรเบื้องต้น</span><span class="mono" style="color:${profit>=0?'var(--teal)':'var(--red)'}">฿${fmt(profit)}</span></div>
+    <div class="report-row vat-alert"><span>⚠️ VAT นำส่งสรรพากร (ภ.พ.30)</span><span class="mono" style="color:var(--red);font-weight:700">฿${fmt(totalVat)}</span></div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+// ===== EXPORT =====
+function exportCSV() {
+  if (!entries.length) return toast('ยังไม่มีข้อมูล');
+  const header = 'วันที่,ประเภท,หมวด,รายละเอียด,ราคาก่อน VAT,VAT 7%,รวม,ช่องทาง,เลขที่บิล\n';
+  const rows = entries.map(e => {
+    const label = e.kind==='income' ? (TYPE_LABELS[e.type]||e.type) : (EXP_LABELS[e.type]||e.type);
+    const base = e.kind==='income' ? (e.baseAmount||e.amount) : e.amount;
+    const vat  = e.kind==='income' ? (e.vatAmount||0) : 0;
+    return [e.date, e.kind==='income'?'รายรับ':'รายจ่าย', label, e.note||'', base.toFixed(2), vat.toFixed(2), e.amount.toFixed(2), e.pay||'', e.bill||''].join(',');
+  }).join('\n');
+  const blob = new Blob(['\uFEFF'+header+rows], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vet_'+reportYM+'.csv';
+  a.click();
+  toast('📥 Export สำเร็จ');
+}
+
+// ===== HELPERS =====
+function fmt(n) {
+  return (n||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function formatThaiDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${parseInt(day)} ${TH_MONTHS[parseInt(m)]} ${parseInt(y)+543}`;
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+function clearIncForm() {
+  document.getElementById('inc-type').value = '';
+  document.getElementById('inc-amount').value = '';
+  document.getElementById('inc-note').value = '';
+  document.getElementById('inc-bill').value = '';
+  document.getElementById('inc-vat-box').style.display = 'none';
+  document.getElementById('inc-vat-calc').style.display = 'none';
+}
+function clearExpForm() {
+  document.getElementById('exp-amount').value = '';
+  document.getElementById('exp-note').value = '';
+  document.getElementById('exp-bill').value = '';
+}
+</script>
+</body>
+</html>
