@@ -592,7 +592,7 @@ input:focus, select:focus { outline: none; border-color: var(--teal); }
   <div class="pages">
 
     <!-- HOME -->
-    <div class="page active" id="page-home">
+    <div class="page" id="page-home">
       <div class="kpi-grid">
         <div class="kpi">
           <div class="kpi-label">รายรับเดือนนี้</div>
@@ -623,7 +623,7 @@ input:focus, select:focus { outline: none; border-color: var(--teal); }
     </div>
 
     <!-- ADD INCOME -->
-    <div class="page" id="page-income">
+    <div class="page active" id="page-income">
       <div class="section-head">ประเภทรายรับ</div>
       <div class="card">
         <div class="card-row">
@@ -788,17 +788,17 @@ input:focus, select:focus { outline: none; border-color: var(--teal); }
 
   <!-- BOTTOM NAV -->
   <nav class="bottomnav">
-    <button class="nav-btn active" onclick="goPage('home',this)">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-label">หน้าหลัก</div>
-    </button>
-    <button class="nav-btn" onclick="goPage('income',this)">
+    <button class="nav-btn active" onclick="goPage('income',this)">
       <div class="nav-icon">📥</div>
       <div class="nav-label">รายรับ</div>
     </button>
     <button class="nav-btn" onclick="goPage('expense',this)">
       <div class="nav-icon">📤</div>
       <div class="nav-label">รายจ่าย</div>
+    </button>
+    <button class="nav-btn" onclick="goPage('home',this)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">หน้าหลัก</div>
     </button>
     <button class="nav-btn" onclick="goPage('list',this)">
       <div class="nav-icon">📋</div>
