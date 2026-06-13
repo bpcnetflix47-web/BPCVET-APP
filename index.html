@@ -485,6 +485,93 @@ input:focus, select:focus { outline: none; border-color: var(--teal); }
   text-align: center;
   padding: 6px;
 }
+
+/* ===== PIN LOCK SCREEN ===== */
+.pin-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--navy);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  padding-top: calc(var(--safe-top) + 32px);
+  padding-bottom: calc(var(--safe-bot) + 32px);
+}
+.pin-logo { font-size: 52px; margin-bottom: 12px; }
+.pin-title { color: white; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.pin-subtitle { color: rgba(255,255,255,0.45); font-size: 14px; margin-bottom: 40px; }
+
+.pin-dots {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.pin-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4);
+  background: transparent;
+  transition: all 0.15s;
+}
+.pin-dot.filled { background: var(--teal); border-color: var(--teal); }
+.pin-dot.error  { background: var(--red); border-color: var(--red); }
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 300px;
+}
+.pin-key {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pin-key:active { background: rgba(255,255,255,0.25); }
+.pin-key.del { font-size: 20px; background: rgba(255,255,255,0.05); }
+.pin-key.empty { background: transparent; pointer-events: none; }
+
+.pin-error-msg {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 16px;
+  min-height: 20px;
+  text-align: center;
+}
+
+.pin-change-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.5);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 24px;
+}
+
+/* Setup PIN mode */
+.pin-step {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
 </style>
 </head>
 <body>
@@ -725,6 +812,36 @@ input:focus, select:focus { outline: none; border-color: var(--teal); }
 
 </div><!-- /app -->
 
+<!-- PIN LOCK OVERLAY -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-logo">🐾</div>
+  <div class="pin-step" id="pinStep"></div>
+  <div class="pin-title" id="pinTitle">PawAccounts</div>
+  <div class="pin-subtitle" id="pinSubtitle">ใส่รหัส PIN 4 หลัก</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error-msg" id="pinError"></div>
+  <button class="pin-change-btn" id="pinChangeBtn" onclick="startChangePin()" style="display:none">🔒 เปลี่ยน PIN</button>
+</div>
+
 <!-- DELETE MODAL -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
@@ -777,6 +894,7 @@ window.addEventListener('load', () => {
   reportYM = ym;
   updateReportLabel();
   refreshHome();
+  initPin();
 });
 
 // ===== NAVIGATION =====
@@ -1106,6 +1224,157 @@ function clearExpForm() {
   document.getElementById('exp-note').value = '';
   document.getElementById('exp-bill').value = '';
 }
+
+// ===== PIN LOCK =====
+const PIN_KEY     = 'vet_pin';
+const SESSION_KEY = 'vet_unlocked';
+let pinBuffer = '';
+let pinMode   = 'unlock';   // 'unlock' | 'setup' | 'change_old' | 'change_new' | 'change_confirm'
+let pinTemp   = '';          // stores first entry during setup/confirm
+
+function initPin() {
+  const stored = localStorage.getItem(PIN_KEY);
+  // Already unlocked this session?
+  if (sessionStorage.getItem(SESSION_KEY) === '1' && stored) {
+    hidePin(); return;
+  }
+  if (!stored) {
+    // First time — setup mode
+    pinMode = 'setup';
+    document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 1/2';
+    document.getElementById('pinTitle').textContent = 'ตั้งรหัส PIN';
+    document.getElementById('pinSubtitle').textContent = 'กำหนด PIN 4 หลักสำหรับเข้าแอป';
+  } else {
+    pinMode = 'unlock';
+    document.getElementById('pinStep').textContent = '';
+    document.getElementById('pinTitle').textContent = 'PawAccounts';
+    document.getElementById('pinSubtitle').textContent = 'ใส่รหัส PIN เพื่อเข้าใช้งาน';
+    document.getElementById('pinChangeBtn').style.display = 'block';
+  }
+  document.getElementById('pinOverlay').style.display = 'flex';
+}
+
+function hidePin() {
+  document.getElementById('pinOverlay').style.display = 'none';
+  document.getElementById('pinChangeBtn').style.display = 'block';
+}
+
+function pinPress(num) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += num;
+  updateDots();
+  if (pinBuffer.length === 4) setTimeout(handlePinComplete, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updateDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function updateDots(state) {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.className = 'pin-dot';
+    if (state === 'error') d.classList.add('error');
+    else if (i < pinBuffer.length) d.classList.add('filled');
+  }
+}
+
+function handlePinComplete() {
+  const stored = localStorage.getItem(PIN_KEY);
+
+  if (pinMode === 'unlock') {
+    if (pinBuffer === stored) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      hidePin();
+      toast('🔓 เข้าสู่ระบบแล้ว');
+    } else {
+      pinError('PIN ไม่ถูกต้อง ลองอีกครั้ง');
+    }
+
+  } else if (pinMode === 'setup') {
+    pinTemp = pinBuffer;
+    pinBuffer = '';
+    updateDots();
+    document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 2/2';
+    document.getElementById('pinSubtitle').textContent = 'ยืนยัน PIN อีกครั้ง';
+    pinMode = 'confirm_setup';
+
+  } else if (pinMode === 'confirm_setup') {
+    if (pinBuffer === pinTemp) {
+      localStorage.setItem(PIN_KEY, pinBuffer);
+      sessionStorage.setItem(SESSION_KEY, '1');
+      hidePin();
+      toast('✅ ตั้งรหัส PIN สำเร็จ');
+    } else {
+      pinTemp = '';
+      pinMode = 'setup';
+      document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 1/2';
+      document.getElementById('pinSubtitle').textContent = 'กำหนด PIN 4 หลักสำหรับเข้าแอป';
+      pinError('PIN ไม่ตรงกัน เริ่มใหม่');
+    }
+
+  } else if (pinMode === 'change_old') {
+    if (pinBuffer === stored) {
+      pinBuffer = '';
+      updateDots();
+      pinMode = 'change_new';
+      document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 2/3';
+      document.getElementById('pinSubtitle').textContent = 'ใส่ PIN ใหม่ 4 หลัก';
+      document.getElementById('pinError').textContent = '';
+    } else {
+      pinError('PIN เดิมไม่ถูกต้อง');
+    }
+
+  } else if (pinMode === 'change_new') {
+    pinTemp = pinBuffer;
+    pinBuffer = '';
+    updateDots();
+    pinMode = 'change_confirm';
+    document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 3/3';
+    document.getElementById('pinSubtitle').textContent = 'ยืนยัน PIN ใหม่อีกครั้ง';
+
+  } else if (pinMode === 'change_confirm') {
+    if (pinBuffer === pinTemp) {
+      localStorage.setItem(PIN_KEY, pinBuffer);
+      sessionStorage.setItem(SESSION_KEY, '1');
+      hidePin();
+      toast('✅ เปลี่ยน PIN สำเร็จ');
+    } else {
+      pinTemp = '';
+      pinMode = 'change_new';
+      document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 2/3';
+      document.getElementById('pinSubtitle').textContent = 'ใส่ PIN ใหม่ 4 หลัก';
+      pinError('PIN ไม่ตรงกัน ลองอีกครั้ง');
+    }
+  }
+}
+
+function pinError(msg) {
+  updateDots('error');
+  document.getElementById('pinError').textContent = msg;
+  setTimeout(() => {
+    pinBuffer = '';
+    updateDots();
+    document.getElementById('pinError').textContent = '';
+  }, 900);
+}
+
+function startChangePin() {
+  pinBuffer = '';
+  pinTemp   = '';
+  pinMode   = 'change_old';
+  updateDots();
+  document.getElementById('pinOverlay').style.display = 'flex';
+  document.getElementById('pinStep').textContent = 'ขั้นตอนที่ 1/3';
+  document.getElementById('pinTitle').textContent = 'เปลี่ยน PIN';
+  document.getElementById('pinSubtitle').textContent = 'ใส่ PIN เดิมก่อน';
+  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinChangeBtn').style.display = 'none';
+}
+
+// PIN init is called inside the main load listener above
 </script>
 </body>
 </html>
